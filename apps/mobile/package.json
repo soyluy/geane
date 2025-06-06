@@ -1,5 +1,10 @@
 {
   "name": "@codebase/mobile",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.1",
+    "expo-av": "~15.0.2",
+    "expo-font": "~13.0.4"
+  }
 }
