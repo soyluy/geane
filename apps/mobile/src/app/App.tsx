@@ -1,73 +1,63 @@
 // apps/mobile/src/app/App.tsx
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   Animated,
   Dimensions,
   StatusBar,
+  Platform,
+  Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Expo AV’dan Video ve ResizeMode ikisini birden import ediyoruz:
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Video, ResizeMode } from 'expo-av';
+import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import CreateAccountScreen from './screens/CreateAccountScreen';
+import LoginScreen from './screens/LoginScreen';     // Eğer “Giriş Yap” için ayrı bir ekran kullanacaksanız
+import LoginContent from './components/LoginContent';
 
-// Artık bu yol geçerli: src/app/screens/LoginScreen.tsx
-import LoginScreen from './screens/LoginScreen';
+const Stack = createStackNavigator();
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function App() {
-  // 1) Inter fontlarının yüklenmesi
+/** 
+ * 1) “HomeScreen” bileşeni: 
+ *    — Video + Animated overlay (LoginContent) işlevselliğini içerir.
+ */
+function HomeScreen() {
+  // 1.a) Fontları yükleyelim
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_700Bold,
   });
 
-  // 2) Animasyon referans değerleri
-  const PANEL_HEIGHT = 350; // Panel yüksekliği
+  // 1.b) Overlay panelin başlangıçta ekrandan aşağıda olması
+  const PANEL_HEIGHT = SCREEN_HEIGHT * 0.4; 
   const overlayTranslateY = useRef(new Animated.Value(PANEL_HEIGHT)).current;
-  const logoOpacity = useRef(new Animated.Value(0)).current;
 
-  // 3) 3 saniye sonra animasyonları başlat
   useEffect(() => {
     const timer = setTimeout(() => {
-      Animated.parallel([
-        // Panel kaydırma: 350px aşağıdan 0'a
-        Animated.timing(overlayTranslateY, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        // Logo fade-in: 0 opaklıktan 1 opaklığa
-        Animated.timing(logoOpacity, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, 3000); // 3000 ms (3 saniye) gecikme
-
+      Animated.timing(overlayTranslateY, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }).start();
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [overlayTranslateY, logoOpacity]);
+  }, [overlayTranslateY]);
 
-  // 4) Fontlar yüklenene kadar render etme
   if (!fontsLoaded) {
-    return null;
+    return null; // Fontlar yüklenene kadar boş göster
   }
 
-  // 5) Asıl UI render
   return (
     <View style={styles.container}>
-      {/* StatusBar tamamen gizli */}
+      {/* StatusBar’ı gizle */}
       <StatusBar hidden />
 
-      {/* --- VIDEO ARKA PLAN --- */}
+      {/* 1) Video arka plan */}
       <Video
         source={require('../../assets/videos/intro.mp4')}
         style={styles.video}
@@ -76,71 +66,111 @@ export default function App() {
         isLooping
       />
 
-      {/* --- LOGO (fade-in) --- */}
-      <Animated.View style={[styles.logoContainer, { opacity: logoOpacity }]}>
-        <SafeAreaView>
-          <Animated.Text style={styles.logoText}>Geane</Animated.Text>
-        </SafeAreaView>
-      </Animated.View>
+      {/* 2) Sol üst köşedeki LOGO */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../../assets/images/LOGO.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </View>
 
-      {/* --- ALT PANEL (LOGIN) --- */}
+      {/* 3) Aşağıdan yukarı kayan beyaz overlay panel */}
       <Animated.View
         style={[
           styles.overlayContainer,
           { transform: [{ translateY: overlayTranslateY }] },
         ]}
       >
-        <LoginScreen />
+        <LoginContent />
       </Animated.View>
     </View>
   );
 }
 
-// --- STYLESHEET ---
-const SCREEN_WIDTH = Dimensions.get('window').width;
+/** 
+ * 2) `App` bileşeni: 
+ *    — NavigationContainer ve Stack Navigator yapısını içerir.
+ */
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false, // Üstte otomatik header görünmesin
+        }}
+      >
+        {/* HomeScreen: Uygulama açıldığında gösterilecek ekran */}
+        <Stack.Screen name="Home" component={HomeScreen} />
 
+        {/* CreateAccountScreen: “Hesap Oluştur” butonuna basınca gidilecek */}
+        <Stack.Screen
+          name="CreateAccount"
+          component={CreateAccountScreen}
+        />
+
+        {/* İsterseniz Giriş Yap için ayrı bir ekran tanımlayabilirsiniz */}
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+/** 
+ * 3) Stil Tanımları 
+ */
 const styles = StyleSheet.create({
+  /////////////////////////////////////
+  // 3.1) Root Konteyner
+  /////////////////////////////////////
   container: {
     flex: 1,
-    backgroundColor: '#000', // Video kenarlarında siyah kalsın
+    backgroundColor: '#000000', // Video kenarlarında siyah kalsın
   },
+
+  /////////////////////////////////////
+  // 3.2) Video Stili
+  /////////////////////////////////////
   video: {
     position: 'absolute',
     top: 0,
     left: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  },
+
+  /////////////////////////////////////
+  // 3.3) Logo Container
+  /////////////////////////////////////
+  logoContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    left: 20,
+    width: 100,
+    height: 30,
+  },
+  logoImage: {
     width: '100%',
     height: '100%',
   },
-  // Logo kutusunun stilleri
-  logoContainer: {
-    position: 'absolute',
-    top: 40, // Ekranın 40 px altından
-    left: 20, // Ekranın 20 px solundan
-    backgroundColor: 'rgba(0,0,0,0.4)', // Yarı şeffaf siyah arka plan
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    zIndex: 2,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    // İsterseniz Inter Bold kullanmak için:
-    // fontFamily: 'Inter_700Bold',
-  },
-  // Aşağıdan yukarı kayacak beyaz panelin stilleri
+
+  /////////////////////////////////////
+  // 3.4) Overlay Panel (Animated)
+  /////////////////////////////////////
   overlayContainer: {
     position: 'absolute',
     bottom: 0,
-    left: (SCREEN_WIDTH - 430) / 2, // Panel genişliği 430, ekran ortalaması
-    width: 430,
-    height: 350,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    paddingTop: 32,
-    paddingHorizontal: 24,
-    zIndex: 1,
+    left: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT * 0.4, // Ekranın %40’ı kadar yükseklik
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 16,
+    paddingHorizontal: 20,
   },
 });

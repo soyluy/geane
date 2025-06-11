@@ -1,33 +1,14 @@
-const { withNxMetro } = require('@nx/expo');
-const { getDefaultConfig } = require('@expo/metro-config');
-const { mergeConfig } = require('metro-config');
+// apps/mobile/metro.config.js
 
-const defaultConfig = getDefaultConfig(__dirname);
-const { assetExts, sourceExts } = defaultConfig.resolver;
+const { getDefaultConfig } = require('expo/metro-config');
 
-/**
- * Metro configuration
- * https://reactnative.dev/docs/metro
- *
- * @type {import('metro-config').MetroConfig}
- */
-const customConfig = {
-  cacheVersion: '@codebase/mobile',
-  transformer: {
-    babelTransformerPath: require.resolve('react-native-svg-transformer'),
-  },
-  resolver: {
-    assetExts: assetExts.filter((ext) => ext !== 'svg'),
-    sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
-  },
-};
+// Eğer Expo kullanıyorsanız, aşağıdaki gibi mevcut Expo Metro config’ini alıp üzerine ekleme yapabilirsiniz:
+const config = getDefaultConfig(__dirname);
 
-module.exports = withNxMetro(mergeConfig(defaultConfig, customConfig), {
-  // Change this to true to see debugging info.
-  // Useful if you have issues resolving modules
-  debug: false,
-  // all the file extensions used for imports other than 'ts', 'tsx', 'js', 'jsx', 'json'
-  extensions: [],
-  // Specify folders to watch, in addition to Nx defaults (workspace libraries and node_modules)
-  watchFolders: [],
-});
+// Metro’ya “.svg” uzantısını JS/TS/JSON vb. ile aynı şekilde işlemeyi öğretelim:
+config.resolver.sourceExts.push('svg');
+
+// Metro’ya “.svg” dosyalarını “react-native-svg-transformer” ile dönüştürmesini söyleyelim:
+config.transformer.babelTransformerPath = require.resolve('react-native-svg-transformer');
+
+module.exports = config;

@@ -7,15 +7,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Dimensions,
 } from 'react-native';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const PANEL_WIDTH = 320; // sabit buton genişliği
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
+  const navigation = useNavigation();
+
   const handleCreateAccount = () => {
-    console.log('Hesap Oluştur butonuna basıldı');
+    navigation.navigate('CreateAccount');
   };
   const handleGoogleContinue = () => {
     console.log('Google ile Devam Et butonuna basıldı');
@@ -41,12 +40,10 @@ export default function LoginScreen() {
         onPress={handleGoogleContinue}
         activeOpacity={0.8}
       >
-        {/* Google ikonu: soldan 16px boşluk, mutlak konum */}
         <Image
           source={require('../../../assets/images/google-icon.png')}
           style={styles.googleIcon}
         />
-        {/* Metin, butonun tam ortasında */}
         <Text style={styles.googleButtonText}>Google ile Devam Et</Text>
       </TouchableOpacity>
 
@@ -69,9 +66,10 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     width: '100%',
+    marginTop: 20,
   },
   createAccountButton: {
-    width: PANEL_WIDTH,
+    width: 320,
     height: 40,
     backgroundColor: '#F13957',
     borderRadius: 15,
@@ -86,7 +84,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
   },
   googleButton: {
-    width: PANEL_WIDTH,
+    width: 320,
     height: 40,
     borderWidth: 1,
     borderColor: '#DDDDDD',
@@ -116,13 +114,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
   },
   infoText: {
-    width: PANEL_WIDTH,
+    width: 320,
     alignSelf: 'center',
     fontSize: 14,
     color: '#000000',
     textAlign: 'center',
     marginTop: 32,
     lineHeight: 20,
+    fontFamily: 'Inter_400Regular',
   },
   boldText: {
     fontFamily: 'Inter_700Bold',
