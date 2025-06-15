@@ -10,5 +10,11 @@
       "path": "./tsconfig.spec.json"
     }
   ],
-  "strict": true,
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
 }
